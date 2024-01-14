@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
-import SideBar from './SideBar';
-import NavBar from './Navbar';
+// Product.jsx
+import React, { useState, useEffect } from "react";
+import SideBar from "./SideBar";
+import NavBar from "./Navbar";
 
-const Products = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isAddingProduct, setIsAddingProduct] = useState(false);
+const Product = () => {
+  const [isAddingItem, setIsAddingItem] = useState(false);
   const [newProduct, setNewProduct] = useState({
-    Category: '',
-    ProductName: '',
-    PackSize: '',
-    MRP: '',
-    ProductImage: '',
-    Status: 'inactive',
+    name: "",
+    category: "",
+    packsize: 0,
+    mrp: 0,
+    image: "",
+    status: "inactive",
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // Product API routes
+  const getProductApi = 'http://localhost:4000/products';
 
+  // Fetch products function
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:4000/products');
+      const response = await fetch(getProductApi);
       const data = await response.json();
 
       if (response.ok) {
@@ -34,12 +36,19 @@ const Products = () => {
     }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleAddItemClick = () => {
+    setIsAddingItem(true);
+    setSearchQuery('');
   };
 
-  const handleAddProductClick = () => {
-    setIsAddingProduct(true);
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+    setSearchQuery('');
+    setIsAddingItem(false);
   };
 
   const handleInputChange = (e) => {
@@ -52,69 +61,61 @@ const Products = () => {
 
   const handleSaveProduct = async () => {
     try {
-      // Ensure the provided category exists
-      const existingCategory = await fetch(`http://localhost:4000/categories/${newProduct.Category}`);
-  
-      if (!existingCategory.ok) {
-        const errorData = await existingCategory.json();
-        console.error('Error saving product:', errorData.message || 'Category not found');
-        // You can display a user-friendly message or take other actions here
-        return; // Exit the function if the category is not found
-      }
-  
-      const response = await fetch('http://localhost:4000/products', {
+      const response = await fetch(getProductApi, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newProduct),
+        body: JSON.stringify({
+          name: newProduct.name,
+          category: newProduct.category,
+          packsize: newProduct.packsize,
+          mrp: newProduct.mrp,
+          image: newProduct.image,
+          status: newProduct.status,
+        }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         setProducts((prevProducts) => [...prevProducts, data.data]);
       } else {
         console.error('Error saving product:', data.error || data.message);
-        // You can display a user-friendly message or take other actions here
       }
     } catch (error) {
       console.error('Error saving product:', error.message);
-      // You can display a user-friendly message or take other actions here
     }
-  
+
     // Reset state after saving
-    setIsAddingProduct(false);
+    setIsAddingItem(false);
     setSearchQuery('');
     setNewProduct({
-      Category: '',
-      ProductName: '',
-      PackSize: '',
-      MRP: '',
-      ProductImage: '',
-      Status: 'inactive',
+      name: "",
+      category: "",
+      packsize: 0,
+      mrp: 0,
+      image: "",
+      status: "inactive",
     });
   };
-  
-  
-  
 
-  const handleCancelAddProduct = () => {
+  const handleCancelAddItem = () => {
     // Reset state without saving
-    setIsAddingProduct(false);
+    setIsAddingItem(false);
     setSearchQuery('');
     setNewProduct({
-      Category: '',
-      ProductName: '',
-      PackSize: '',
-      MRP: '',
-      ProductImage: '',
-      Status: 'inactive',
+      name: "",
+      category: "",
+      packsize: 0,
+      mrp: 0,
+      image: "",
+      status: "inactive",
     });
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.Category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -123,108 +124,122 @@ const Products = () => {
         <div>
           <NavBar />
         </div>
-
         <div className="flex">
           <div>
             <SideBar />
           </div>
-          <div className="flex container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-4">Products Page</h1>
-            {isAddingProduct ? (
-              <div className="mb-4">
-                {/* Add Product Form */}
-                <input
-                  type="text"
-                  name="Category"
-                  placeholder="Category"
-                  className="p-2 border border-gray-300 rounded mr-2"
-                  value={newProduct.Category}
-                  onChange={handleInputChange}
-                />
+          <div className="container mx-auto p-4">
+            <div className="bg-gray-100 p-4 border">
+              <h1 className="text-3xl font-bold mb-4">Product Page</h1>
+              {!isAddingItem && (
+                <div className="flex space-x-4 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search Products"
+                    className="p-2 border border-gray-300 rounded"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={handleAddItemClick}
+                  >
+                    Add Product
+                  </button>
+                </div>
+              )}
+              {isAddingItem ? (
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Product Name"
+                    className="p-2 border border-gray-300 rounded mr-2"
+                    value={newProduct.name}
+                    onChange={handleInputChange}
+                  />
 
-                <input
-                  type="text"
-                  name="ProductName"
-                  placeholder="Product Name"
-                  className="p-2 border border-gray-300 rounded mr-2"
-                  value={newProduct.ProductName}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="text"
-                  name="PackSize"
-                  placeholder="Pack Size"
-                  className="p-2 border border-gray-300 rounded mr-2"
-                  value={newProduct.PackSize}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="number"
-                  name="MRP"
-                  placeholder="MRP"
-                  className="p-2 border border-gray-300 rounded mr-2"
-                  value={newProduct.MRP}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="file"
-                  name="ProductImage"
-                  placeholder="ProductImage"
-                  className="p-2 border border-gray-300 rounded mr-2"
-                  value={newProduct.ProductImage}
-                  onChange={handleInputChange}
-                />
-                <select
-                  name="Status"
-                  className="p-2 border border-gray-300 rounded"
-                  value={newProduct.Status}
-                  onChange={handleInputChange}
-                >
-                  <option value="inactive">Inactive</option>
-                  <option value="active">Active</option>
-                </select>
-                <div>
+                  <input
+                    type="string"
+                    name="packsize"
+                    placeholder="Product packsize"
+                    className="p-2 border border-gray-300 rounded mr-2"
+                    value={newProduct.packsize}
+                    onChange={handleInputChange}
+                  />
+
+                  <input
+                    type="number"
+                    name="mrp"
+                    placeholder="Product MRP"
+                    className="p-2 border border-gray-300 rounded mr-2"
+                    value={newProduct.mrp}
+                    onChange={handleInputChange}
+                  />
+
+                  <input
+                    type="text"
+                    name="image"
+                    placeholder="Product Image URL"
+                    className="p-2 border border-gray-300 rounded mr-2"
+                    value={newProduct.image}
+                    onChange={handleInputChange}
+                  />
+
+                  <input
+                    type="text"
+                    name="category"
+                    placeholder="Product category"
+                    className="p-2 border border-gray-300 rounded mr-2"
+                    value={newProduct.category}
+                    onChange={handleInputChange}
+                  />
+                  <select
+                    name="status"
+                    className="p-2 border border-gray-300 rounded"
+                    value={newProduct.status}
+                    onChange={handleInputChange}
+                  >
+                    <option value="inactive">Inactive</option>
+                    <option value="active">Active</option>
+                  </select>
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded ml-2"
                     onClick={handleSaveProduct}
                   >
-                    Save Product
+                    Save
                   </button>
                   <button
                     className="bg-red-500 text-white px-4 py-2 rounded ml-2"
-                    onClick={handleCancelAddProduct}
+                    onClick={handleCancelAddItem}
                   >
                     Cancel
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="space-x-4 mb-4">
-                {/* Search Input and Add Product Button */}
-                <input
-                  type="text"
-                  placeholder="Search Products"
-                  className="p-2 border border-gray-300 rounded"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleAddProductClick}
-                >
-                  Add Product
-                </button>
-              </div>
-            )}
-            <div className="">
-              <h2 className="text-xl font-semibold mb-2">Product List</h2>
-              <ul>
-                {filteredProducts.map((product) => (
-                  <li key={product._id} className="mb-1">
-                    {product.Category}
-                  </li>
-                ))}
-              </ul>
+              ) : (
+                <div>
+                  {filteredProducts.map(product => (
+                    <div
+                      key={product._id}
+                      className="cursor-pointer bg-gray-200 p-2 mb-2"
+                      onClick={() => handleProductClick(product)}
+                    >
+                      {product.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedProduct && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Product Details</h2>
+                  <p>Name: {selectedProduct.name}</p>
+                  <p>Pack Size: {selectedProduct.packsize}</p>
+                  <p>MRP: ${selectedProduct.mrp}</p>
+                  <p>Image: <img src={selectedProduct.image} alt={selectedProduct.name} /></p>
+                  <p>Category: {selectedProduct.category}</p>
+                  <p>Status: {selectedProduct.status}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -233,4 +248,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Product;

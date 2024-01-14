@@ -89,10 +89,12 @@ app.delete("/categories/:categoryId", async (req, res) => {
 });
 
 
+
+
 // Product routes
 app.get("/products", async (req, res) => {
   try {
-    const products = await Product.find().populate('category', 'name');
+    const products = await Product.find();
     res.json({ status: "success", data: products, message: "Products retrieved successfully" });
   } catch (error) {
     console.error("Error fetching products:", error.message);
@@ -100,25 +102,22 @@ app.get("/products", async (req, res) => {
   }
 });
 
+// Product routes
 app.post("/products", async (req, res) => {
-  const { name, packSize, category, MRP, image, status } = req.body;
+  const { name, category, packsize, mrp, image, status } = req.body;
 
   try {
-    // Ensure the provided category exists
-    const existingCategory = await Category.findById(category);
-    if (!existingCategory) {
-      return res.status(400).json({ status: "error", message: "Category not found" });
-    }
-
-    const newProduct = new Product({ name, packSize, category, MRP, image, status });
+    const newProduct = new Product({ name, category, packsize, mrp, image, status });
     await newProduct.save();
     console.log('Saved Product:', newProduct);
+
     res.json({ status: "success", data: newProduct, message: "Product created successfully" });
   } catch (error) {
     console.error("Error creating product:", error.message);
     res.status(500).json({ status: "error", message: "Internal Server Error for post" });
   }
 });
+
 
 app.delete("/products/:productId", async (req, res) => {
   const productId = req.params.productId;
@@ -136,6 +135,7 @@ app.delete("/products/:productId", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal Server Error for delete" });
   }
 });
+
 
 
 

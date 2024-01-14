@@ -19,17 +19,19 @@ const categorySchema = new mongoose.Schema({
 
 const Category = mongoose.model('Category', categorySchema);
 
-// product modal
-const ProductSchema = new mongoose.Schema({
+// models.js
+const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  packSize: { type: String },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  MRP: { type: Number, required: true },
-  image: { type: String },
+  category: { type: String, required: true },
+  packsize: { type: Number, default: 0 },
+  mrp: { type: String, required: true },
+  image: { type: String, required: true },
   status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
 });
 
-const Product = mongoose.model('Product', ProductSchema);
+const Product = mongoose.model('Product', productSchema);
+
+
 
 module.exports = {
   User,
