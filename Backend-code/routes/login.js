@@ -7,7 +7,7 @@ const cors = require('cors');
 const { User, Category, Product } = require('../modules/loginModules');
 
 const app = express();
-const port = 4000;
+const port = 6000;
 
 app.use(express.json());
 app.use(bodyParser.json());

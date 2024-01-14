@@ -6,7 +6,7 @@ import dbConnection from './config/db.js';
 import authRoutes from './routes/authRoutes.mjs';
 
 const app = express();
-const port = 4000;
+const port = 5001;
 
 app.use(express.json());
 app.use(bodyParser.json());

@@ -76,9 +76,9 @@
 // index.js
 const app = require('./routes/login');
 
-const port = 5000; // Change the port to a different one
-
+const port = process.env.PORT || 5001;
 app.listen(port, () => {
-  console.log("Connected server");
+  console.log(`Server is running on port ${port}`);
 });
+
 
